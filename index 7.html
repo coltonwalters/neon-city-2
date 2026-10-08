@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NEON CITY // AFTER DARK</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;background:#02030a;color:#fff;font-family:Arial,sans-serif}
+body{overflow-x:hidden}
+#scene{position:fixed;inset:0;z-index:0}
+.scroll-space{height:620vh;position:relative;z-index:1;pointer-events:none}
+.chapter{height:100vh;display:flex;align-items:center;padding:0 7%;position:relative}
+.chapter:nth-child(even){justify-content:flex-end}
+.story-card{width:min(500px,86vw);padding:28px 30px;pointer-events:auto;background:rgba(2,6,15,.62);border:1px solid rgba(0,234,255,.35);border-left:3px solid #00eaff;backdrop-filter:blur(12px);box-shadow:0 0 40px rgba(0,234,255,.08);opacity:0;transform:translateY(35px);transition:opacity .55s ease,transform .75s ease}
+.chapter:nth-child(even) .story-card{border-left:1px solid rgba(255,24,143,.35);border-right:3px solid #ff188f}
+.chapter.active .story-card{opacity:1;transform:translateY(0)}
+.story-card .number{font-size:10px;letter-spacing:4px;color:#00eaff;font-weight:900}
+.story-card h2{font-size:clamp(35px,5vw,68px);line-height:.86;letter-spacing:-3px;margin:12px 0 18px;text-transform:uppercase}
+.story-card h2 span{color:#ff188f}
+.story-card p{color:#b6c4d2;line-height:1.7;font-size:14px;margin:0}
+.story-card .fact{margin-top:20px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);font-size:10px;letter-spacing:2px;color:#7eeeff;text-transform:uppercase}
+.mini-game{margin-top:20px;padding:15px;background:rgba(0,0,0,.38);border:1px solid rgba(0,234,255,.22);pointer-events:auto}
+.game-title{font:900 11px "Arial";letter-spacing:2px;color:#00eaff}
+.mini-game p{font-size:11px!important;line-height:1.4!important;margin:7px 0 10px!important;color:#8495a5!important}
+.game-btn{font:900 10px Arial;border:1px solid #00eaff;background:rgba(0,234,255,.08);color:#fff;padding:8px 11px;cursor:pointer;letter-spacing:1px}
+.game-btn:hover{background:#00eaff;color:#02030a}
+.game-score{font:900 9px Arial;letter-spacing:1px;color:#8da0b3;margin-top:9px}
+.reaction-btn{min-width:145px}.reaction-btn.ready{background:#00eaff;color:#001017;box-shadow:0 0 25px #00eaff}
+.code-display{font:900 25px monospace;letter-spacing:8px;color:#ff188f;text-shadow:0 0 12px #ff188f;margin:8px 0}
+.dodge-road{height:75px;position:relative;overflow:hidden;border:1px solid #263948;background:repeating-linear-gradient(90deg,#080c14 0 30px,#101722 30px 60px)}
+.bike{position:absolute;bottom:6px;left:42%;font-size:22px;transition:left .12s}.enemy{position:absolute;top:-30px;left:50%;font-size:21px;animation:drive 1.8s linear infinite}
+@keyframes drive{to{transform:translateY(115px)}}
+.dodge-controls{display:flex;gap:6px;margin-top:6px}.dodge-controls .game-btn{width:50%}
+.target-arena{height:90px;position:relative;border:1px solid #283847;background:radial-gradient(circle,#0c1823,#03060b)}
+.target{position:absolute;left:20%;top:25%;width:32px;height:32px;border-radius:50%;border:1px solid #ff188f;background:#ff188f;color:white;box-shadow:0 0 18px #ff188f;cursor:pointer}
+.collector{height:85px;position:relative;overflow:hidden;border:1px solid #263948;background:#03060b}
+.shard{position:absolute;border:0;background:transparent;color:#00eaff;font-size:24px;text-shadow:0 0 18px #00eaff;cursor:pointer;left:40%;top:30%}
+.shot-meter{height:22px;background:#101820;border:1px solid #263948;position:relative;overflow:hidden;margin:8px 0}
+.green-zone{position:absolute;left:43%;width:14%;top:0;bottom:0;background:#00eaff;box-shadow:0 0 15px #00eaff}
+.shot-ball{position:absolute;top:4px;left:0;width:12px;height:12px;border-radius:50%;background:#ff188f;box-shadow:0 0 12px #ff188f;animation:meter 1.3s linear infinite alternate}
+@keyframes meter{from{left:2%}to{left:94%}}
+
+
+#scene canvas{display:block}
+
+#scene{position:fixed;inset:0}
+canvas{display:block}
+.ui{position:fixed;inset:0;pointer-events:none}
+.top{position:absolute;top:25px;left:30px;right:30px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:15px;font-weight:900;letter-spacing:5px;text-shadow:0 0 14px #00eaff}
+.logo span{color:#ff178f}.status{font-size:10px;letter-spacing:2px;color:#8defff}
+.cross{position:absolute;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%);opacity:.65}
+.cross:before,.cross:after{content:"";position:absolute;background:#bffcff}.cross:before{width:18px;height:1px;top:9px}.cross:after{height:18px;width:1px;left:9px}
+.intro{position:absolute;left:6%;bottom:8%;max-width:560px}
+.kicker{font-size:11px;letter-spacing:5px;color:#00eaff;margin-bottom:15px}
+h1{font-size:clamp(42px,7vw,100px);line-height:.8;margin:0;letter-spacing:-5px;text-transform:uppercase;text-shadow:0 0 18px #00d9ff,0 0 50px #ff008c}
+h1 span{color:#ff198e}
+.copy{color:#b9c7d6;max-width:470px;line-height:1.6;font-size:14px;margin:25px 0}
+button{pointer-events:auto;border:1px solid #00eaff;background:rgba(0,234,255,.08);color:white;padding:13px 19px;letter-spacing:2px;font-weight:800;cursor:pointer;box-shadow:0 0 15px rgba(0,234,255,.22);transition:.2s}
+button:hover{background:#00eaff;color:#02030a;box-shadow:0 0 28px #00eaff}
+.hud{position:absolute;right:30px;bottom:28px;width:220px;border:1px solid rgba(0,234,255,.35);background:rgba(2,5,14,.5);backdrop-filter:blur(8px);padding:15px}
+.hud div{display:flex;justify-content:space-between;font-size:9px;letter-spacing:2px;color:#8495a8;margin:7px 0}.hud b{color:#fff}
+.hint{position:absolute;top:50%;left:30px;transform:translateY(-50%);writing-mode:vertical-rl;color:#617080;font-size:9px;letter-spacing:3px}
+#fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .7s}
+#start{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(circle at center,rgba(15,30,55,.25),#010208 75%);z-index:5;transition:opacity .7s}
+.startbox{text-align:center}.startbox h2{font-size:clamp(32px,6vw,80px);letter-spacing:-3px;margin:0;text-shadow:0 0 25px #00eaff}.startbox p{color:#8293a5;font-size:11px;letter-spacing:3px;margin:20px}
+</style>
+</head>
+<body>
+<div id="scene"></div>
+<div id="start"><div class="startbox"><h2>AFTER DARK</h2><p>ENTER THE CITY • HEADPHONES RECOMMENDED</p><button id="enter">ENTER NEON CITY</button></div></div>
+<div id="fade"></div>
+<div class="scroll-space">
+  <section class="chapter active" data-zone="0">
+    <div class="story-card">
+      <div class="number">01 / ARRIVAL</div>
+      <h2>WELCOME TO<br><span>NEON CITY</span></h2>
+      <p>This city was built around one idea: nobody should have to look at a blank skyline. Towering districts, electric streets, rain-soaked roads, and endless light turn every block into a moving piece of the night.</p>
+      <div class="fact">SCROLL TO DRIVE DEEPER INTO THE CITY ↓</div>
+      <div class="mini-game">
+        <div class="game-title">⚡ STREET REACTION</div>
+        <p>Wait for the light to turn CYAN, then hit the button.</p>
+        <button class="game-btn reaction-btn" data-state="wait">WAITING...</button>
+        <div class="game-score reaction-score">BEST: 0.000s</div>
+      </div>
+    </div>
+  </section>
+  <section class="chapter" data-zone="1">
+    <div class="story-card">
+      <div class="number">02 / THE TOWERS</div>
+      <h2>THE CITY<br><span>NEVER ENDS</span></h2>
+      <p>The central district is packed vertically. Corporate towers rise above older apartment blocks, while rooftop antennas and private skyways connect the upper levels. From street level, the buildings disappear into the fog.</p>
+      <div class="fact">HEIGHT INDEX • 10–75 STORIES</div>
+      <div class="mini-game">
+        <div class="game-title">🏢 ROOFTOP HACK</div>
+        <p>Memorize the 4-digit access code for two seconds.</p>
+        <div class="code-display">----</div>
+        <button class="game-btn code-btn">START HACK</button>
+        <div class="game-score code-score">SECURITY: LOCKED</div>
+      </div>
+    </div>
+  </section>
+  <section class="chapter" data-zone="2">
+    <div class="story-card">
+      <div class="number">03 / THE GRID</div>
+      <h2>EVERY ROAD<br>LEADS <span>SOMEWHERE</span></h2>
+      <p>Below the towers is the Grid: a network of streets designed for movement. Neon signs mark businesses, traffic cuts through the rain, and the reflective pavement makes the entire city glow after dark.</p>
+      <div class="fact">TRAFFIC STATUS • ACTIVE</div>
+      <div class="mini-game">
+        <div class="game-title">🚦 TRAFFIC DODGE</div>
+        <p>Tap the arrows to move your bike away from the incoming cars.</p>
+        <div class="dodge-road"><div class="bike">🏍️</div><div class="enemy">🚗</div></div>
+        <div class="dodge-controls"><button class="game-btn dodge-left">←</button><button class="game-btn dodge-right">→</button></div>
+        <div class="game-score dodge-score">DODGED: 0</div>
+      </div>
+    </div>
+  </section>
+  <section class="chapter" data-zone="3">
+    <div class="story-card">
+      <div class="number">04 / AFTER MIDNIGHT</div>
+      <h2>THE NIGHT<br><span>BELONGS HERE</span></h2>
+      <p>At 2:17 AM, the city changes. Office lights go dark while clubs, diners, street markets, and underground stations become brighter. Rain turns every surface into a mirror.</p>
+      <div class="fact">TIME • 02:17 AM &nbsp; / &nbsp; VISIBILITY • LOW</div>
+      <div class="mini-game">
+        <div class="game-title">🎯 NEON TARGETS</div>
+        <p>Click 5 targets before the timer reaches zero.</p>
+        <div class="target-arena"><button class="target">+</button></div>
+        <button class="game-btn target-start">START RUN</button>
+        <div class="game-score target-score">5 TARGETS • 10s</div>
+      </div>
+    </div>
+  </section>
+  <section class="chapter" data-zone="4">
+    <div class="story-card">
+      <div class="number">05 / THE UPPER CITY</div>
+      <h2>ABOVE THE<br><span>STREETS</span></h2>
+      <p>The higher you go, the quieter it gets. Rooftop platforms hover above the traffic, with private transit routes crossing between towers. From here, the city looks less like a place and more like a circuit board.</p>
+      <div class="fact">ALTITUDE • 42 M AND RISING</div>
+      <div class="mini-game">
+        <div class="game-title">💎 COLLECT THE CITY</div>
+        <p>Grab as many energy shards as you can in 8 seconds.</p>
+        <div class="collector"><button class="shard">◆</button></div>
+        <button class="game-btn collect-start">START COLLECTION</button>
+        <div class="game-score collect-score">SHARDS: 0</div>
+      </div>
+    </div>
+  </section>
+  <section class="chapter" data-zone="5">
+    <div class="story-card">
+      <div class="number">06 / THE HORIZON</div>
+      <h2>KEEP<br><span>GOING</span></h2>
+      <p>There is no final street in Neon City. The skyline continues beyond the visible horizon, promising another district, another story, and another night. Scroll back up or take control and explore it yourself.</p>
+      <div class="fact">SYSTEM • ONLINE &nbsp; / &nbsp; CITY • AWAKE</div>
+      <div class="mini-game">
+        <div class="game-title">🏀 FINAL SHOT</div>
+        <p>Time your click as the moving ball crosses the green zone.</p>
+        <div class="shot-meter"><div class="green-zone"></div><div class="shot-ball"></div></div>
+        <button class="game-btn shot-btn">SHOOT</button>
+        <div class="game-score shot-score">MADE: 0 • MISSED: 0</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="ui">
+  <div class="top"><div class="logo">NEON<span>//</span>CITY</div><div class="status">● NIGHT MODE &nbsp; <span id="time">02:17 AM</span></div></div>
+  <div class="cross"></div>
+  <div style="position:absolute;right:30px;top:90px;height:190px;width:2px;background:rgba(255,255,255,.12)">
+    <div id="progress" style="width:2px;height:0;background:#00eaff;box-shadow:0 0 10px #00eaff"></div>
+  </div>
+  <div class="hint">W A S D / ARROWS TO MOVE • MOUSE TO LOOK • SHIFT TO BOOST</div>
+  <div class="hud">
+    <div><span>SPEED</span><b id="speed">00 KM/H</b></div>
+    <div><span>ALTITUDE</span><b>42 M</b></div>
+    <div><span>VISIBILITY</span><b>LOW</b></div>
+    <div><span>SYSTEM</span><b style="color:#00eaff">ONLINE</b></div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161/build/three.module.js';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x02030a);
+scene.fog = new THREE.FogExp2(0x050814,0.018);
+
+const camera = new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,1000);
+camera.position.set(0,8,18);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.15;
+document.getElementById('scene').appendChild(renderer.domElement);
+
+// Lights
+scene.add(new THREE.HemisphereLight(0x173b66,0x08020e,1.4));
+const moon=new THREE.DirectionalLight(0x72baff,2);
+moon.position.set(-30,50,20); scene.add(moon);
+
+// Ground
+const ground=new THREE.Mesh(
+ new THREE.PlaneGeometry(500,500),
+ new THREE.MeshStandardMaterial({color:0x05070d,metalness:.75,roughness:.28})
+);
+ground.rotation.x=-Math.PI/2; scene.add(ground);
+
+// Road grid
+const grid=new THREE.GridHelper(500,100,0x07384c,0x06131c);
+grid.position.y=.03; scene.add(grid);
+
+// City helpers
+const neonMats=[
+ new THREE.MeshBasicMaterial({color:0x00eaff}),
+ new THREE.MeshBasicMaterial({color:0xff168f}),
+ new THREE.MeshBasicMaterial({color:0x8d37ff}),
+ new THREE.MeshBasicMaterial({color:0xff5a00})
+];
+
+function building(x,z,w,h,d){
+ const mat=new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(.62,.28,.035+Math.random()*.03),roughness:.65,metalness:.25});
+ const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+ b.position.set(x,h/2,z); scene.add(b);
+ // rooftop antenna
+ if(Math.random()>.45){
+  const pole=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,Math.random()*7+3),neonMats[Math.floor(Math.random()*4)]);
+  pole.position.set(x,h+3,z); scene.add(pole);
+ }
+ // glowing vertical edges
+ for(const side of [-1,1]){
+  if(Math.random()>.3){
+   const line=new THREE.Mesh(new THREE.BoxGeometry(.045,h*.92,.045),neonMats[Math.floor(Math.random()*4)]);
+   line.position.set(x+side*w/2+.025,h/2,z+d/2+.025); scene.add(line);
+  }
+ }
+ // windows
+ const windowMat=new THREE.MeshBasicMaterial({color:Math.random()>.5?0x00dfff:0xff238e,transparent:true,opacity:.7});
+ const rows=Math.min(16,Math.floor(h/3));
+ for(let r=1;r<rows;r++){
+  if(Math.random()>.2){
+   const win=new THREE.Mesh(new THREE.PlaneGeometry(Math.max(.5,w*.45),.12),windowMat);
+   win.position.set(x,h*.07+r*2.2,z-d/2-.02);
+   win.rotation.y=Math.PI; scene.add(win);
+  }
+ }
+}
+for(let i=0;i<105;i++){
+ const side=Math.random()>.5?1:-1;
+ const x=side*(25+Math.random()*105);
+ const z=(Math.random()-.5)*360;
+ building(x,z,4+Math.random()*13,10+Math.random()*65,5+Math.random()*12);
+}
+// distant skyline
+for(let i=0;i<55;i++) building((Math.random()-.5)*260,(Math.random()-.5)*260,3+Math.random()*9,8+Math.random()*35,4+Math.random()*9);
+
+// Street lamps / signs
+function sign(x,y,z,textColor){
+ const board=new THREE.Mesh(new THREE.BoxGeometry(3.2,1.2,.12),new THREE.MeshBasicMaterial({color:textColor}));
+ board.position.set(x,y,z); scene.add(board);
+}
+for(let z=-170;z<170;z+=18){
+ sign(-18,5,z,Math.random()>.5?0x00eaff:0xff158f);
+ sign(18,7,z+7,Math.random()>.5?0xff158f:0x8d37ff);
+}
+
+// Rain
+const rainCount=7000, rainGeo=new THREE.BufferGeometry(), rainPos=new Float32Array(rainCount*3);
+for(let i=0;i<rainCount*3;i+=3){rainPos[i]=(Math.random()-.5)*220;rainPos[i+1]=Math.random()*90;rainPos[i+2]=(Math.random()-.5)*300}
+rainGeo.setAttribute('position',new THREE.BufferAttribute(rainPos,3));
+const rain=new THREE.Points(rainGeo,new THREE.PointsMaterial({color:0x8beaff,size:.08,transparent:true,opacity:.6}));
+scene.add(rain);
+
+// Flying traffic
+const cars=[];
+function car(){
+ const m=new THREE.MeshBasicMaterial({color:Math.random()>.5?0x00eaff:0xff168f});
+ const c=new THREE.Mesh(new THREE.BoxGeometry(.5,.25,2.2),m);
+ c.position.set((Math.random()-.5)*28,1+Math.random()*3,-180-Math.random()*180);
+ scene.add(c);cars.push(c);
+}
+for(let i=0;i<25;i++)car();
+
+// Controls
+const keys={}; let yaw=0,pitch=-.03,boost=false;
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key==='Shift')boost=true});
+addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;if(e.key==='Shift')boost=false});
+let dragging=false,lastX=0,lastY=0;
+renderer.domElement.addEventListener('mousedown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY});
+addEventListener('mouseup',()=>dragging=false);
+addEventListener('mousemove',e=>{
+ if(!dragging)return;
+ yaw-=(e.clientX-lastX)*.0025; pitch-=(e.clientY-lastY)*.0025;
+ pitch=Math.max(-.5,Math.min(.5,pitch)); lastX=e.clientX;lastY=e.clientY;
+});
+let touchX=0,touchY=0;
+addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;touchY=e.touches[0].clientY});
+addEventListener('touchmove',e=>{let t=e.touches[0];yaw-=(t.clientX-touchX)*.003;pitch-=(t.clientY-touchY)*.003;pitch=Math.max(-.5,Math.min(.5,pitch));touchX=t.clientX;touchY=t.clientY},{passive:true});
+
+function update(dt){
+ const speed=(boost||keys['shift'])?30:12;
+ const forward=(keys['w']||keys['arrowup']?1:0)-(keys['s']||keys['arrowdown']?1:0);
+ const strafe=(keys['d']||keys['arrowright']?1:0)-(keys['a']||keys['arrowleft']?1:0);
+ if(Math.abs(forward)+Math.abs(strafe)>0 && document.body.scrollHeight <= innerHeight+10){
+  camera.position.x+=Math.sin(yaw)*forward*speed*dt + Math.cos(yaw)*strafe*speed*dt;
+  camera.position.z+=Math.cos(yaw)*forward*speed*dt - Math.sin(yaw)*strafe*speed*dt;
+}
+ camera.position.y=7+Math.sin(performance.now()*.0012)*.15;
+ camera.rotation.set(pitch,yaw,0,'YXZ');
+ document.getElementById('speed').textContent=String(Math.round(Math.abs(forward||strafe)*speed*3.6)).padStart(2,'0')+' KM/H';
+
+ // Infinite-feeling rain
+ const p=rain.geometry.attributes.position.array;
+ for(let i=1;i<p.length;i+=3){p[i]-=55*dt;if(p[i]<0)p[i]=90}
+ rain.geometry.attributes.position.needsUpdate=true;
+ // traffic toward viewer
+ cars.forEach(c=>{c.position.z+=35*dt;if(c.position.z>30)c.position.z=-230});
+}
+
+
+// Scroll-driven city journey.
+const chapters = [...document.querySelectorAll('.chapter')];
+const progressBar = document.getElementById('progress');
+let targetTravel = 0;
+let currentTravel = 0;
+let scrollYaw = 0;
+
+function updateJourney(){
+  const max = document.documentElement.scrollHeight - innerHeight;
+  const p = max > 0 ? scrollY / max : 0;
+  targetTravel = p * 300;
+  progressBar.style.height = (p * 100) + '%';
+
+  const zone = Math.min(chapters.length - 1, Math.floor(p * chapters.length));
+  chapters.forEach((c,n)=>c.classList.toggle('active',n===zone));
+
+  // The camera travels through the city as the page scrolls.
+  // A gentle curve makes the movement feel like a cinematic vehicle ride.
+  scrollYaw = Math.sin(p * Math.PI * 3) * .13;
+  camera.position.x = Math.sin(p * Math.PI * 2.4) * 16;
+  camera.position.z = 18 - targetTravel;
+  camera.position.y = 7 + Math.sin(p * Math.PI * 5) * .8;
+  yaw = scrollYaw;
+
+  const mins = Math.floor(137 + p * 41);
+  const hh = String(Math.floor(mins/60)).padStart(2,'0');
+  const mm = String(mins%60).padStart(2,'0');
+  document.getElementById('time').textContent = hh + ':' + mm + ' AM';
+}
+addEventListener('scroll', updateJourney, {passive:true});
+updateJourney();
+
+
+// Mini-games embedded in the scroll journey.
+let reactionStart=0, reactionTimer=null;
+document.querySelectorAll('.reaction-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    if(btn.dataset.state==='ready'){
+      const t=(performance.now()-reactionStart)/1000;
+      btn.textContent=t.toFixed(3)+'s — AGAIN';
+      btn.dataset.state='wait'; btn.classList.remove('ready');
+      clearTimeout(reactionTimer);
+      const score=btn.parentElement.querySelector('.reaction-score');
+      score.textContent='TIME: '+t.toFixed(3)+'s';
+      return;
+    }
+    btn.textContent='WAIT...'; btn.dataset.state='wait';
+    clearTimeout(reactionTimer);
+    reactionTimer=setTimeout(()=>{reactionStart=performance.now();btn.textContent='CLICK NOW!';btn.dataset.state='ready';btn.classList.add('ready')},700+Math.random()*1800);
+  });
+});
+
+document.querySelectorAll('.code-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const box=btn.parentElement.querySelector('.code-display');
+    const score=btn.parentElement.querySelector('.code-score');
+    const code=String(Math.floor(1000+Math.random()*9000));
+    box.textContent=code; score.textContent='MEMORIZE...';
+    btn.disabled=true;
+    setTimeout(()=>{
+      box.textContent='----'; score.textContent='TYPE THE CODE IN YOUR HEAD → '+code;
+      btn.disabled=false;
+      setTimeout(()=>score.textContent='ACCESS GRANTED • NICE MEMORY',2200);
+    },2000);
+  });
+});
+
+document.querySelectorAll('.dodge-road').forEach(road=>{
+  let lane=1, dodged=0, running=false;
+  const bike=road.querySelector('.bike'), enemy=road.querySelector('.enemy'), score=road.parentElement.querySelector('.dodge-score');
+  function move(){lane=Math.max(0,Math.min(2,lane));bike.style.left=(12+lane*36)+'%';}
+  road.parentElement.querySelector('.dodge-left').onclick=()=>{lane--;move()};
+  road.parentElement.querySelector('.dodge-right').onclick=()=>{lane++;move()};
+  enemy.addEventListener('animationiteration',()=>{if(running){dodged++;score.textContent='DODGED: '+dodged}});
+  running=true; move();
+});
+
+document.querySelectorAll('.target-start').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const arena=btn.parentElement.querySelector('.target-arena'), target=arena.querySelector('.target'), scoreEl=btn.parentElement.querySelector('.target-score');
+    let hits=0,time=10,active=true; target.style.display='block';
+    const move=()=>{target.style.left=Math.random()*85+'%';target.style.top=Math.random()*65+'%'};
+    target.onclick=()=>{if(!active)return;hits++;scoreEl.textContent=hits+' / 5 TARGETS';move();if(hits>=5){active=false;scoreEl.textContent='CITY CLEARED • '+(10-time)+'s';}};
+    const timer=setInterval(()=>{time--;if(!active||time<=0){clearInterval(timer);active=false;target.style.display='none';if(hits<5)scoreEl.textContent='TIME UP • '+hits+'/5'}} ,1000);
+    move();
+  });
+});
+
+document.querySelectorAll('.collect-start').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const area=btn.parentElement.querySelector('.collector'), shard=area.querySelector('.shard'), scoreEl=btn.parentElement.querySelector('.collect-score');
+    let count=0,time=8,active=true; shard.style.display='block';
+    const move=()=>{shard.style.left=Math.random()*90+'%';shard.style.top=Math.random()*70+'%'};
+    shard.onclick=()=>{if(!active)return;count++;scoreEl.textContent='SHARDS: '+count;move()};
+    move();
+    const timer=setInterval(()=>{time--;if(time<=0){clearInterval(timer);active=false;shard.style.display='none';scoreEl.textContent='RUN COMPLETE • '+count+' SHARDS'}},1000);
+  });
+});
+
+document.querySelectorAll('.shot-btn').forEach(btn=>{
+  let made=0,missed=0;
+  btn.onclick=()=>{
+    const ball=btn.parentElement.querySelector('.shot-ball'), zone=btn.parentElement.querySelector('.green-zone');
+    const a=ball.getBoundingClientRect(), z=zone.getBoundingClientRect();
+    if(a.left+a.width/2>=z.left && a.left+a.width/2<=z.right) made++; else missed++;
+    btn.parentElement.querySelector('.shot-score').textContent='MADE: '+made+' • MISSED: '+missed;
+  };
+});
+
+let clock=new THREE.Clock();
+function animate(){
+ requestAnimationFrame(animate);
+ const dt=Math.min(clock.getDelta(),.05);
+ update(dt);
+ renderer.render(scene,camera);
+}
+animate();
+
+document.getElementById('boostBtn')?.addEventListener('click',()=>{boost=true;setTimeout(()=>boost=false,2200)});
+document.getElementById('enter').onclick=()=>{
+ document.getElementById('start').style.opacity='0';
+ setTimeout(()=>document.getElementById('start').remove(),700);
+};
+addEventListener('resize',()=>{
+ camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);
+});
+</script>
+</body>
+</html>
